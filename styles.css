@@ -1,8 +1,290 @@
-/*
+/* Memory Palace Selection Modal Styles */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* Modal Container - The content area of the modal */
+.memory-palace-selection-modal {
+  padding: 12px;
+  width: 70vw;
+  max-width: 500px;
+  height: 70vh;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: 0 auto;
+}
 
-If your plugin does not need CSS, delete this file.
+/* Hide the close button (X) in the top right corner */
+.memory-palace-selection-modal .modal-close-button,
+.modal .modal-close-button {
+  display: none !important;
+}
 
-*/
+/* Modal Header */
+.mp-modal-header {
+  text-align: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.mp-modal-header h2 {
+  margin: 0 0 2px 0;
+  color: var(--text-normal);
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.mp-modal-header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8em;
+}
+
+/* Results Grid - 3x3 layout */
+.mp-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  flex: 1;
+  padding: 0;
+  min-height: 0; /* Important for proper grid sizing */
+}
+
+/* Individual Result Item */
+.mp-result-item {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  background: var(--background-secondary);
+  min-height: 0; /* Important for proper sizing */
+}
+
+.mp-result-item:hover,
+.mp-result-item.mp-hovered {
+  border-color: var(--interactive-accent);
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Image Container */
+.mp-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary);
+}
+
+/* Loading State */
+.mp-image-container.mp-loading::before {
+  content: '⏳';
+  font-size: 2em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* Error State */
+.mp-image-container.mp-error {
+  background: var(--background-modifier-error);
+}
+
+.mp-error-icon {
+  font-size: 2em;
+  opacity: 0.5;
+}
+
+/* Preview Image - Fixed Size */
+.mp-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+/* Image Overlay */
+.mp-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(0, 0, 0, 0.8) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mp-result-item:hover .mp-image-overlay,
+.mp-result-item.mp-hovered .mp-image-overlay {
+  opacity: 1;
+}
+
+/* Overlay Info Text */
+.mp-overlay-info {
+  color: white;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1.2;
+}
+
+/* Selection Indicator */
+.mp-selection-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--interactive-accent);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  font-weight: bold;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+}
+
+.mp-result-item:hover .mp-selection-indicator,
+.mp-result-item.mp-hovered .mp-selection-indicator {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Modal Actions */
+.mp-modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.mp-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.mp-button-secondary {
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.mp-button-secondary:hover {
+  background: var(--background-modifier-border-hover);
+  transform: translateY(-1px);
+}
+
+/* No Results State */
+.mp-no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mp-no-results p {
+  margin: 8px 0;
+  font-size: 1em;
+}
+
+.mp-no-results p:first-child {
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .memory-palace-selection-modal {
+    width: 95vw;
+    height: 75vh;
+    padding: 8px;
+    max-height: 450px;
+  }
+  
+  .mp-results-grid {
+    gap: 4px;
+  }
+  
+  .mp-modal-header h2 {
+    font-size: 1em;
+  }
+  
+  .mp-modal-header p {
+    font-size: 0.75em;
+  }
+}
+
+@media (max-height: 700px) {
+  .memory-palace-selection-modal {
+    height: 80vh;
+    max-height: 450px;
+    padding: 8px;
+  }
+  
+  .mp-modal-header {
+    margin-bottom: 6px;
+  }
+  
+  .mp-results-grid {
+    gap: 4px;
+  }
+  
+  .mp-modal-actions {
+    margin-top: 6px;
+  }
+}
+
+@media (max-height: 600px) {
+  .memory-palace-selection-modal {
+    height: 85vh;
+    max-height: 400px;
+    padding: 6px;
+  }
+  
+  .mp-modal-header {
+    margin-bottom: 4px;
+  }
+  
+  .mp-modal-header h2 {
+    font-size: 0.9em;
+  }
+  
+  .mp-modal-header p {
+    font-size: 0.7em;
+  }
+  
+  .mp-results-grid {
+    gap: 3px;
+  }
+  
+  .mp-modal-actions {
+    margin-top: 4px;
+  }
+}
