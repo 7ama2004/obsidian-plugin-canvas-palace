@@ -2,6 +2,7 @@ import { Plugin, Notice, Editor, MarkdownView } from 'obsidian';
 import { parseMarkdownForM1, parseMarkdownForM2, findPixabayPrompts, findGeminiPrompts, findGoogleSearchPrompts } from './MarkdownParser';
 import { updateCanvasForM1, updateCanvasForM2 } from './CanvasManager';
 import { PresentationView } from './PresentationView';
+import { TestingPresentationView } from './TestingPresentationView';
 import { MemoryPalaceSettingTab, DEFAULT_SETTINGS } from './Settings';
 import { MemoryPalaceSettings, PixabayResult } from './types';
 import { searchPixabay, downloadMedia, generateGeminiImage, searchGoogleImages, downloadMediaFromUrl } from './ApiService';
@@ -38,6 +39,15 @@ export default class MemoryPalacePlugin extends Plugin {
       name: 'Memory Palace: Start Presentation',
       editorCallback: (editor: Editor, view: MarkdownView) => {
         this.startPresentationMode(editor, view);
+      }
+    });
+
+    // Add testing mode command
+    this.addCommand({
+      id: 'memory-palace-start-testing',
+      name: 'Memory Palace: Start Testing',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        this.startTestingMode(editor, view);
       }
     });
 
@@ -173,6 +183,47 @@ export default class MemoryPalacePlugin extends Plugin {
   }
 
   /**
+   * Start testing mode for the current file
+   */
+  private async startTestingMode(editor: Editor, view: MarkdownView) {
+    const activeFile = view.file;
+    
+    if (!activeFile || activeFile.extension !== 'md') {
+      new Notice('Please open a Markdown file to start testing mode');
+      return;
+    }
+
+    try {
+      // Get file metadata to check for canvas frontmatter
+      const fileCache = this.app.metadataCache.getFileCache(activeFile);
+      const frontmatter = fileCache?.frontmatter;
+      
+      if (!frontmatter || !frontmatter.canvas) {
+        new Notice('No canvas specified in frontmatter. Add "canvas: path/to/canvas.canvas" to your frontmatter.');
+        return;
+      }
+
+      // Read the file content
+      const fileContent = await this.app.vault.read(activeFile);
+      
+      // Parse the memory palace data (always use M2 format for testing as it has more features)
+      const palaceData = parseMarkdownForM2(fileContent);
+      
+      if (palaceData.size === 0) {
+        new Notice('No stations found in this file.');
+        return;
+      }
+
+      // Start the testing session with canvas path
+      new TestingPresentationView(this.app, palaceData, frontmatter.canvas).open();
+      
+    } catch (error) {
+      console.error('Error starting testing mode:', error);
+      new Notice(`Error starting testing: ${error.message}`, 5000);
+    }
+  }
+
+  /**
    * Fetch Pixabay media from prompts in the current file
    */
   private async fetchPixabayMedia(editor: Editor, view: MarkdownView) {
@@ -241,7 +292,7 @@ export default class MemoryPalacePlugin extends Plugin {
             const regex = new RegExp(`${prompt.type}:\\s*pixabay\\(${prompt.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`);
             
             if (regex.test(line)) {
-              const newLine = `${prompt.type}: "[[${localPath}]]"`;
+              const newLine = `${prompt.type}: ![[${localPath}]]`;
               lines[lineIndex] = line.replace(regex, newLine);
               break;
             }
@@ -317,7 +368,7 @@ export default class MemoryPalacePlugin extends Plugin {
             const regex = new RegExp(`image:\\s*gemini\\(${prompt.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`);
             
             if (regex.test(line)) {
-              const newLine = line.replace(regex, `image: "[[${localPath}]]"`);
+              const newLine = line.replace(regex, `image: ![[${localPath}]]`);
               lines[lineIndex] = newLine;
               break;
             }
@@ -421,7 +472,7 @@ export default class MemoryPalacePlugin extends Plugin {
             const regex = new RegExp(`image:\\s*google\\(${prompt.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`);
             
             if (regex.test(line)) {
-              const newLine = line.replace(regex, `image: "[[${localPath}]]"`);
+              const newLine = line.replace(regex, `image: ![[${localPath}]]`);
               lines[lineIndex] = newLine;
               break;
             }

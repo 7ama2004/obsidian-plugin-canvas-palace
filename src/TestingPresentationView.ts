@@ -2,7 +2,7 @@ import { App, Modal, Notice } from 'obsidian';
 import { MemoryStationM2, ParsedMemoryPalace } from './types';
 import { CanvasOverviewRenderer } from './CanvasOverviewRenderer';
 
-export class PresentationView extends Modal {
+export class TestingPresentationView extends Modal {
   palaceData: ParsedMemoryPalace<MemoryStationM2>;
   stations: MemoryStationM2[];
   currentStationIndex = 0;
@@ -26,10 +26,10 @@ export class PresentationView extends Modal {
   }
 
   async onOpen() {
-    this.titleEl.setText('Memory Palace Presentation');
+    this.titleEl.setText('Memory Palace Testing');
     
     // Add CSS class for styling
-    this.modalEl.addClass('memory-palace-presentation');
+    this.modalEl.addClass('memory-palace-testing');
     
     // Add keyboard event listeners
     document.addEventListener('keydown', this.keydownHandler);
@@ -62,13 +62,6 @@ export class PresentationView extends Modal {
       this.canvasOverview.destroy();
       this.canvasOverview = null;
     }
-    
-    // Clean up any audio elements
-    const audioElements = this.contentEl.querySelectorAll('audio');
-    audioElements.forEach(audio => {
-      audio.pause();
-      audio.currentTime = 0;
-    });
   }
 
   private async initializeCanvasOverview() {
@@ -101,13 +94,6 @@ export class PresentationView extends Modal {
   private async renderCurrentStation() {
     const { contentEl } = this;
     
-    // Stop any currently playing audio before clearing content
-    const existingAudioElements = contentEl.querySelectorAll('audio');
-    existingAudioElements.forEach(audio => {
-      audio.pause();
-      audio.currentTime = 0;
-    });
-    
     contentEl.empty();
 
     // Check if we have a valid station
@@ -118,13 +104,13 @@ export class PresentationView extends Modal {
     }
 
     // Create split layout container
-    const splitContainer = contentEl.createDiv('presentation-split-container');
+    const splitContainer = contentEl.createDiv('testing-split-container');
     
     // Left panel - Canvas overview
-    const leftPanel = splitContainer.createDiv('presentation-left-panel');
+    const leftPanel = splitContainer.createDiv('testing-left-panel');
     
     // Right panel - Station content
-    const rightPanel = splitContainer.createDiv('presentation-right-panel');
+    const rightPanel = splitContainer.createDiv('testing-right-panel');
     
     // Always recreate canvas overview since we recreate the entire layout
     if (this.canvasPath) {
@@ -164,7 +150,7 @@ export class PresentationView extends Modal {
       }
     }
 
-    // Render station content in right panel
+    // Render station content in right panel (testing mode - minimal content)
     this.renderStationContent(rightPanel, station);
 
     // Add custom CSS if not already added
@@ -183,117 +169,44 @@ export class PresentationView extends Modal {
 
   private renderStationContent(container: HTMLElement, station: MemoryStationM2) {
     // Create main container
-    const contentContainer = container.createDiv('presentation-container');
+    const contentContainer = container.createDiv('testing-container');
     
     // Station header
     contentContainer.createEl('h1', {
       text: `Station #${station.stationId}`,
-      cls: 'presentation-station-header'
+      cls: 'testing-station-header'
     });
 
     // Progress indicator
-    const progress = contentContainer.createDiv('presentation-progress');
+    const progress = contentContainer.createDiv('testing-progress');
     progress.createSpan({
       text: `${this.currentStationIndex + 1} of ${this.stations.length}`,
       cls: 'progress-text'
     });
 
-    // Association text (always visible)
-    if (station.association) {
-      contentContainer.createEl('p', {
-        text: station.association,
-        cls: 'presentation-association'
-      });
-    }
-
-    // Image rendering
-    if (station.imagePath) {
-      try {
-        const imageEl = contentContainer.createEl('img', {
-          cls: 'presentation-image'
-        });
-        
-        // Get vault-accessible path
-        const resourcePath = this.app.vault.adapter.getResourcePath(station.imagePath);
-        imageEl.src = resourcePath;
-        
-        // Handle image load errors
-        imageEl.onerror = () => {
-          imageEl.style.display = 'none';
-          contentContainer.createEl('p', {
-            text: `Image not found: ${station.imagePath}`,
-            cls: 'presentation-error'
-          });
-        };
-        
-      } catch (error) {
-        contentContainer.createEl('p', {
-          text: `Error loading image: ${station.imagePath}`,
-          cls: 'presentation-error'
-        });
-      }
-    }
-
-    // Audio rendering
-    if (station.audioPath) {
-      try {
-        const audioEl = contentContainer.createEl('audio', {
-          cls: 'presentation-audio'
-        });
-        audioEl.controls = true;
-        audioEl.autoplay = true;
-        audioEl.preload = 'auto';
-        
-        // Get vault-accessible path
-        const resourcePath = this.app.vault.adapter.getResourcePath(station.audioPath);
-        audioEl.src = resourcePath;
-        
-        // Handle audio load errors
-        audioEl.onerror = () => {
-          audioEl.style.display = 'none';
-          contentContainer.createEl('p', {
-            text: `Audio not found: ${station.audioPath}`,
-            cls: 'presentation-error'
-          });
-        };
-        
-        // Attempt to play the audio (in case autoplay is blocked)
-        audioEl.onloadeddata = () => {
-          audioEl.play().catch(error => {
-            // Autoplay was blocked by browser policy - user will need to click play
-            console.log('Autoplay blocked:', error);
-          });
-        };
-        
-      } catch (error) {
-        contentContainer.createEl('p', {
-          text: `Error loading audio: ${station.audioPath}`,
-          cls: 'presentation-error'
-        });
-      }
-    }
+    // NO association text, images, or audio in testing mode
 
     // Answer section (conditional rendering)
     if (this.isAnswerVisible) {
       // Show the answer
-      const answerDiv = contentContainer.createDiv('presentation-answer');
+      const answerDiv = contentContainer.createDiv('testing-answer');
       answerDiv.createEl('p', { text: station.text, cls: 'answer-text' });
       
       // Continue instruction
       contentContainer.createEl('p', {
-        text: 'Press Enter to continue...',
-        cls: 'presentation-instruction'
+        text: 'Press Enter to continue to next station...',
+        cls: 'testing-instruction'
       });
     } else {
       // Show reveal prompt
       contentContainer.createEl('p', {
         text: 'Press Enter to reveal answer',
-        cls: 'presentation-answer-placeholder'
+        cls: 'testing-answer-placeholder'
       });
     }
 
     // Navigation instructions
-    const instructions = contentContainer.createDiv('presentation-instructions');
+    const instructions = contentContainer.createDiv('testing-instructions');
     instructions.createEl('p', {
       text: '← Previous | → Next | Enter: Reveal/Continue | Esc: Exit | Click stations on canvas to navigate',
       cls: 'instructions-text'
@@ -309,7 +222,7 @@ export class PresentationView extends Modal {
       this.currentStationIndex++;
       this.renderCurrentStation();
     } else {
-      // End of presentation
+      // End of testing session
       this.showEndScreen();
     }
   };
@@ -340,15 +253,15 @@ export class PresentationView extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    const container = contentEl.createDiv('presentation-end');
+    const container = contentEl.createDiv('testing-end');
     
     container.createEl('h1', {
-      text: 'Presentation Complete!',
+      text: 'Testing Session Complete!',
       cls: 'end-title'
     });
     
     container.createEl('p', {
-      text: `You reviewed ${this.stations.length} memory stations.`,
+      text: `You tested yourself on ${this.stations.length} memory stations.`,
       cls: 'end-summary'
     });
     
@@ -361,7 +274,7 @@ export class PresentationView extends Modal {
     
     // Restart button
     const restartBtn = buttonContainer.createEl('button', {
-      text: 'Restart Presentation',
+      text: 'Restart Testing',
       cls: 'mod-cta'
     });
     restartBtn.onclick = async () => {
@@ -382,25 +295,25 @@ export class PresentationView extends Modal {
 
   private addCustomCSS() {
     // Check if CSS is already added
-    if (document.getElementById('memory-palace-presentation-css')) {
+    if (document.getElementById('memory-palace-testing-css')) {
       return;
     }
 
     const style = document.createElement('style');
-    style.id = 'memory-palace-presentation-css';
+    style.id = 'memory-palace-testing-css';
     style.textContent = `
-      .memory-palace-presentation .modal-content {
+      .memory-palace-testing .modal-content {
         padding: 1rem;
         text-align: center;
       }
       
-      .presentation-split-container {
+      .testing-split-container {
         display: flex;
         height: 100%;
         gap: 1rem;
       }
       
-      .presentation-left-panel {
+      .testing-left-panel {
         flex: 0 0 45%;
         background: transparent;
         border: none;
@@ -414,163 +327,114 @@ export class PresentationView extends Modal {
         min-width: 500px;
       }
       
-      .presentation-right-panel {
+      .testing-right-panel {
         flex: 0 0 55%;
         overflow-y: auto;
         padding: 0 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
-      .canvas-overview-container {
+      .testing-container {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
-        justify-content: stretch;
-        gap: 0;
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      
-      .canvas-placeholder {
-        color: var(--text-muted);
+        align-items: center;
+        gap: 2rem;
+        max-width: 600px;
         text-align: center;
-        padding: 2rem;
-        font-style: italic;
       }
       
-      .canvas-error {
-        color: var(--text-error);
-        background: var(--background-modifier-error);
-        text-align: center;
-        padding: 1rem;
-        border-radius: 4px;
-        font-size: 0.9rem;
-        border: 1px solid var(--background-modifier-error-border);
-      }
-      
-      .presentation-container {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1.5rem;
-        height: 100%;
-      }
-      
-      .presentation-station-header {
+      .testing-station-header {
         color: var(--text-accent);
         margin: 0;
-        font-size: 2rem;
+        font-size: 2.5rem;
+        font-weight: bold;
       }
       
-      .presentation-progress {
+      .testing-progress {
         background: var(--background-secondary);
-        padding: 0.5rem 1rem;
-        border-radius: 1rem;
-        font-size: 0.9rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 1.5rem;
+        font-size: 1rem;
         color: var(--text-muted);
-      }
-      
-      .presentation-association {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        max-width: 800px;
-        background: var(--background-secondary);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin: 0;
-        text-align: left;
-      }
-      
-      .presentation-image {
-        max-width: 400px;
-        max-height: 300px;
-        border-radius: 0.5rem;
-        box-shadow: var(--shadow-s);
-      }
-      
-      .presentation-audio {
-        width: 300px;
-      }
-      
-      .presentation-answer {
-        background: var(--background-primary-alt);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        border: 2px solid var(--text-accent);
-        max-width: 800px;
-        text-align: left;
-      }
-      
-      .answer-header {
-        color: var(--text-accent);
-        margin: 0 0 1rem 0;
-      }
-      
-      .answer-text {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin: 0;
-      }
-      
-      .presentation-answer-placeholder {
-        color: var(--text-muted);
-        font-style: italic;
-        background: var(--background-secondary);
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 0;
-      }
-      
-      .presentation-instruction {
-        color: var(--text-accent);
         font-weight: 500;
-        margin: 0;
       }
       
-      .presentation-instructions {
-        margin-top: auto;
+      .testing-answer {
+        background: var(--background-primary-alt);
+        padding: 2rem;
+        border-radius: 0.75rem;
+        border: 3px solid var(--text-accent);
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+      }
+      
+      .testing-answer .answer-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin: 0;
+        color: var(--text-normal);
+        font-weight: 500;
+        text-align: left;
+      }
+      
+      .testing-answer-placeholder {
+        color: var(--text-muted);
+        font-style: italic;
+        background: var(--background-secondary);
+        padding: 2rem;
+        border-radius: 0.75rem;
+        margin: 0;
+        font-size: 1.2rem;
+        border: 2px dashed var(--background-modifier-border);
+        max-width: 500px;
+        width: 100%;
+      }
+      
+      .testing-instruction {
+        color: var(--text-accent);
+        font-weight: 600;
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      
+      .testing-instructions {
+        margin-top: 2rem;
         padding-top: 1rem;
         border-top: 1px solid var(--background-modifier-border);
+        width: 100%;
       }
       
-      .instructions-text {
+      .testing-instructions .instructions-text {
         color: var(--text-muted);
         font-size: 0.9rem;
         margin: 0;
       }
       
-      .presentation-error {
-        color: var(--text-error);
-        background: var(--background-secondary);
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        font-size: 0.9rem;
-        margin: 0;
-      }
-      
-      .presentation-end {
+      .testing-end {
         text-align: center;
         padding: 2rem;
       }
       
-      .end-title {
+      .testing-end .end-title {
         color: var(--text-accent);
         margin-bottom: 1rem;
       }
       
-      .end-summary {
+      .testing-end .end-summary {
         font-size: 1.1rem;
         margin-bottom: 2rem;
         color: var(--text-normal);
       }
       
-      .end-instructions {
+      .testing-end .end-instructions {
         color: var(--text-muted);
         margin-bottom: 2rem;
       }
       
-      .end-buttons {
+      .testing-end .end-buttons {
         display: flex;
         gap: 1rem;
         justify-content: center;

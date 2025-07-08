@@ -75,8 +75,18 @@ function parseStationBlock(block: string): MemoryStationM2 | null {
   
   // Extract image path
   const imageMatch = block.match(/image:([\s\S]*?)(?=\n(?:text:|association:|audio:|$))/);
-  const imagePath = imageMatch ? imageMatch[1].trim() : undefined;
+  let imagePath = imageMatch ? imageMatch[1].trim() : undefined;
   
+
+  if (imagePath && imagePath.startsWith('![[') && imagePath.endsWith(']]')) {
+    imagePath = imagePath.slice(3, -2).trim(); // Remove ![[]]
+  } else if (imagePath && imagePath.startsWith('[[') && imagePath.endsWith(']]')) {
+    imagePath = imagePath.slice(2, -2).trim(); // Remove [[]]
+  }
+  else {
+    imagePath = undefined;
+  }
+
   // Extract audio path
   const audioMatch = block.match(/audio:([\s\S]*?)(?=\n(?:text:|association:|image:|$))/);
   const audioPath = audioMatch ? audioMatch[1].trim() : undefined;

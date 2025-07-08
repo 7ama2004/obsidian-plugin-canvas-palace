@@ -164,9 +164,9 @@ export class CanvasOverviewRenderer {
       if (groupNode.label) {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('x', (x + 8).toString());
-        text.setAttribute('y', (y + 20).toString());
+        text.setAttribute('y', (y + 25).toString());
         text.setAttribute('fill', isCurrentGroup ? '#ff8c00' : 'var(--text-muted)');
-        text.setAttribute('font-size', '10');
+        text.setAttribute('font-size', '24');
         text.setAttribute('font-weight', isCurrentGroup ? 'bold' : 'normal');
         text.textContent = groupNode.label;
         
